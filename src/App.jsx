@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from "react";
-import "./App.css";
+import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 import AddTransaction from "./components/AddTransaction";
 import BalanceSheet from "./components/BalanceSheet";
+import Footer from "./components/Footer";
+import Navbar from "./components/Navbar";
+import Sidebar from "./components/Sidebar";
 import TransactionList from "./components/TransactionList";
 import { dummyTransactions } from "./dummyData";
 
@@ -60,48 +63,68 @@ function App() {
   });
 
   return (
-    <div className="bg-green-50 min-h-screen flex flex-col items-center py-10">
-      <h1 className="text-4xl font-extrabold text-green-700 mb-8">Splitwise</h1>
-      <div className="container mx-auto p-6 max-w-7xl">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-          <div className="bg-white shadow-lg p-6 rounded-lg border border-green-200">
-            <AddTransaction
-              addTransaction={addTransaction}
-              participants={participants}
-            />
-          </div>
-          <div className="bg-white shadow-lg p-6 rounded-lg border border-green-200">
-            <BalanceSheet balances={balances} />
-            <button
-              onClick={settleUp}
-              className="w-full bg-green-600 text-white font-medium py-2 rounded-md hover:bg-green-700 transition-colors duration-300 mt-4"
-            >
-              Settle Up
-            </button>
-          </div>
+    <Router>
+      <div className="flex flex-col min-h-screen">
+        <Navbar />
+        <div className="flex flex-1">
+          <Sidebar />
+          <main className="flex-1 p-8 bg-gray-100">
+            <Routes>
+              <Route
+                path="/dashboard"
+                element={
+                  <div className="h-full">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 h-full">
+                      <div className="bg-white shadow-lg p-6 rounded-lg border border-green-200 h-full">
+                        <AddTransaction
+                          addTransaction={addTransaction}
+                          participants={participants}
+                        />
+                      </div>
+                      <div className="bg-white shadow-lg p-6 rounded-lg border border-green-200 h-full">
+                        <BalanceSheet balances={balances} />
+                        <button
+                          onClick={settleUp}
+                          className="w-full bg-green-600 text-white font-medium py-2 rounded-md hover:bg-green-700 transition-colors duration-300 mt-4"
+                        >
+                          Settle Up
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                }
+              />
+              <Route
+                path="/history"
+                element={
+                  <div className="bg-white shadow-lg p-6 rounded-lg border border-green-200 h-full">
+                    <div className="mb-4">
+                      <label className="block text-sm font-medium text-green-600 mb-2">
+                        Filter by Participant:
+                      </label>
+                      <select
+                        value={filter}
+                        onChange={(e) => setFilter(e.target.value)}
+                        className="w-full p-2 border border-green-300 rounded-md focus:ring-green-500 focus:border-green-500"
+                      >
+                        <option value="">All</option>
+                        {participants.map((person) => (
+                          <option key={person} value={person}>
+                            {person}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <TransactionList transactions={filteredTransactions} />
+                  </div>
+                }
+              />
+            </Routes>
+          </main>
         </div>
-        <div className="bg-white shadow-lg p-6 rounded-lg border border-green-200">
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-green-600 mb-2">
-              Filter by Participant:
-            </label>
-            <select
-              value={filter}
-              onChange={(e) => setFilter(e.target.value)}
-              className="w-full p-2 border border-green-300 rounded-md focus:ring-green-500 focus:border-green-500"
-            >
-              <option value="">All</option>
-              {participants.map((person) => (
-                <option key={person} value={person}>
-                  {person}
-                </option>
-              ))}
-            </select>
-          </div>
-          <TransactionList transactions={filteredTransactions} />
-        </div>
+        <Footer />
       </div>
-    </div>
+    </Router>
   );
 }
 
