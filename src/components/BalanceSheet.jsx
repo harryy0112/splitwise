@@ -18,16 +18,18 @@ const BalanceSheet = ({ balances }) => {
                 {balances[person] >= 0 ? (
                   <FaArrowUp className="text-green-600" title="Credit" />
                 ) : (
-                  <FaArrowDown className="text-red-600" title="Debt" />
+                  <FaArrowDown className="text-red-600" title="Debit" />
                 )}
               </div>
-              <p
-                className={`text-xl font-semibold ${
-                  balances[person] >= 0 ? "text-green-700" : "text-red-700"
-                }`}
+              <span
+                className={`${
+                  balances[person] >= 0 ? "text-green-600" : "text-red-600"
+                } font-medium`}
               >
-                ₹{balances[person].toFixed(2)}
-              </p>
+                {balances[person] >= 0
+                  ? `₹${balances[person].toFixed(2)}`
+                  : `₹${Math.abs(balances[person]).toFixed(2)}`}
+              </span>
             </div>
           </CSSTransition>
         ))}
