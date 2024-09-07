@@ -2,19 +2,32 @@ import React, { useEffect, useRef, useState } from "react";
 import { FaBars, FaTimes } from "react-icons/fa";
 import { NavLink } from "react-router-dom";
 
+/**
+ * Sidebar component for navigating the application.
+ * Includes a toggle button for mobile view and links to different routes.
+ */
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const sidebarRef = useRef(null);
 
+  /**
+   * Toggles the sidebar visibility.
+   */
   const toggleSidebar = () => {
     setIsOpen((prev) => !prev);
   };
 
+  /**
+   * Closes the sidebar.
+   */
   const closeSidebar = () => {
     setIsOpen(false);
   };
 
   useEffect(() => {
+    /**
+     * Closes the sidebar if a click occurs outside of it.
+     */
     const handleClickOutside = (event) => {
       if (sidebarRef.current && !sidebarRef.current.contains(event.target)) {
         closeSidebar();

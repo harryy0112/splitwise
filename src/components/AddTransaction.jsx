@@ -1,17 +1,25 @@
 import React, { useState } from "react";
 
 const AddTransaction = ({ addTransaction, participants }) => {
+  // State to manage the 'paidBy' field
   const [paidBy, setPaidBy] = useState("");
+  // State to manage the amount of the transaction
   const [amount, setAmount] = useState("");
+  // State to manage the description of the transaction
   const [description, setDescription] = useState("");
+  // State to manage split ratios for each participant
   const [splitRatios, setSplitRatios] = useState(
     (participants || []).reduce((acc, person) => ({ ...acc, [person]: "" }), {})
   );
 
+  // Handle form submission
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    // Validation
     if (!paidBy || !amount || parseFloat(amount) <= 0) return;
 
+    // Calculate total ratio to ensure it is greater than 0
     const totalRatio = Object.values(splitRatios).reduce(
       (sum, ratio) => sum + (parseFloat(ratio) || 0),
       0
@@ -19,12 +27,14 @@ const AddTransaction = ({ addTransaction, participants }) => {
 
     if (totalRatio === 0) return;
 
+    // Determine who the amount is split among
     const splitAmong = Object.keys(splitRatios).filter(
       (person) => splitRatios[person] > 0
     );
 
+    // Create a new transaction object
     const newTransaction = {
-      id: Date.now(),
+      id: Date.now(), // Unique ID for the transaction
       paidBy,
       amount: parseFloat(amount),
       description,
@@ -38,6 +48,7 @@ const AddTransaction = ({ addTransaction, participants }) => {
       ),
     };
 
+    // Add the new transaction and reset the form
     addTransaction(newTransaction);
     setPaidBy("");
     setAmount("");
@@ -47,6 +58,7 @@ const AddTransaction = ({ addTransaction, participants }) => {
     );
   };
 
+  // Handle changes in split ratio inputs
   const handleSplitRatioChange = (e, person) => {
     const { value } = e.target;
     setSplitRatios((prev) => ({ ...prev, [person]: value }));
@@ -59,6 +71,7 @@ const AddTransaction = ({ addTransaction, participants }) => {
       </h2>
 
       <div className="grid gap-4">
+        {/* Paid By Dropdown */}
         <div>
           <label className="block text-sm font-medium text-gray-600">
             Paid By:
@@ -77,6 +90,7 @@ const AddTransaction = ({ addTransaction, participants }) => {
           </select>
         </div>
 
+        {/* Amount Input */}
         <div>
           <label className="block text-sm font-medium text-gray-600">
             Amount:
@@ -90,6 +104,7 @@ const AddTransaction = ({ addTransaction, participants }) => {
           />
         </div>
 
+        {/* Description Input */}
         <div>
           <label className="block text-sm font-medium text-gray-600">
             Description:
@@ -104,6 +119,7 @@ const AddTransaction = ({ addTransaction, participants }) => {
         </div>
       </div>
 
+      {/* Split Ratios Inputs */}
       <div className="mt-4">
         <label className="block text-sm font-medium text-gray-600">
           Split Ratios:
@@ -124,6 +140,7 @@ const AddTransaction = ({ addTransaction, participants }) => {
         </div>
       </div>
 
+      {/* Submit Button */}
       <button
         type="submit"
         className="mt-6 w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700 transition-colors duration-300"

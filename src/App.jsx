@@ -8,18 +8,25 @@ import Sidebar from "./components/Sidebar";
 import TransactionList from "./components/TransactionList";
 import { dummyTransactions } from "./dummyData";
 
+// List of participants
 const participants = ["Rajneesh", "Harsit", "Nistha", "Ankesh"];
 
 function App() {
+  // State to store transactions
   const [transactions, setTransactions] = useState([]);
+
+  // State to store balances of participants
   const [balances, setBalances] = useState({
     Rajneesh: 0,
     Harsit: 0,
     Nistha: 0,
     Ankesh: 0,
   });
+
+  // State for filtering transactions
   const [filter, setFilter] = useState("");
 
+  // Initialize transactions and balances on component mount
   useEffect(() => {
     setTransactions(dummyTransactions);
     const initialBalances = {};
@@ -30,6 +37,7 @@ function App() {
     setBalances(initialBalances);
   }, []);
 
+  // Add a new transaction and update balances accordingly
   const addTransaction = (newTransaction) => {
     setTransactions([...transactions, newTransaction]);
     const updatedBalances = { ...balances };
@@ -37,6 +45,7 @@ function App() {
     setBalances(updatedBalances);
   };
 
+  // Calculate split ratios for the transaction
   const getSplitRatios = (splitAmong) => {
     const ratioPerPerson = 100 / splitAmong.length;
     const splitRatios = {};
@@ -46,6 +55,7 @@ function App() {
     return splitRatios;
   };
 
+  // Update balances based on a transaction
   const updateBalances = (transaction, updatedBalances) => {
     const {
       paidBy,
@@ -78,6 +88,7 @@ function App() {
     });
   };
 
+  // Reset balances and transactions
   const settleUp = () => {
     setBalances({
       Rajneesh: 0,
@@ -88,6 +99,7 @@ function App() {
     setTransactions([]);
   };
 
+  // Filter transactions based on the selected filter
   const filteredTransactions = transactions.filter((transaction) => {
     if (!filter) return true;
     return (

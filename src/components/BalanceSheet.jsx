@@ -3,9 +3,12 @@ import { FaArrowDown, FaArrowUp } from "react-icons/fa";
 import { CSSTransition, TransitionGroup } from "react-transition-group";
 
 const BalanceSheet = ({ balances, transactions }) => {
+  // State to manage which person's details are shown
   const [showDetails, setShowDetails] = useState(null);
 
-  // Calculate details about who owes whom and who is owed by whom
+  /**
+   * Calculate who owes whom and who is owed by whom.
+   */
   const calculateDetails = (person) => {
     let owes = [];
     let owedTo = [];
