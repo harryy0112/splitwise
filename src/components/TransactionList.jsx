@@ -15,7 +15,9 @@ const TransactionList = ({ transactions }) => {
             className="bg-green-50 p-4 mb-4 border border-green-200 rounded-md shadow-sm"
           >
             <p className="text-sm text-green-600">{transaction.description}</p>
-            <p className="font-semibold">Amount: ₹{transaction.amount}</p>
+            <p className="font-semibold">
+              Amount: ₹{transaction.amount.toFixed(2)}
+            </p>
             <p>
               Paid by:{" "}
               <span className="text-green-600 font-medium">

@@ -22,12 +22,19 @@ function App() {
 
   useEffect(() => {
     setTransactions(dummyTransactions);
-    dummyTransactions.forEach((transaction) => updateBalances(transaction));
+    const initialBalances = {};
+    participants.forEach((person) => (initialBalances[person] = 0));
+    dummyTransactions.forEach((transaction) => {
+      updateBalances(transaction, initialBalances);
+    });
+    setBalances(initialBalances);
   }, []);
 
   const addTransaction = (newTransaction) => {
     setTransactions([...transactions, newTransaction]);
-    updateBalances(newTransaction);
+    const updatedBalances = { ...balances };
+    updateBalances(newTransaction, updatedBalances);
+    setBalances(updatedBalances);
   };
 
   const getSplitRatios = (splitAmong) => {
@@ -39,7 +46,7 @@ function App() {
     return splitRatios;
   };
 
-  const updateBalances = (transaction) => {
+  const updateBalances = (transaction, updatedBalances) => {
     const {
       paidBy,
       amount,
@@ -59,20 +66,15 @@ function App() {
       return;
     }
 
-    setBalances((prevBalances) => {
-      const updatedBalances = { ...prevBalances };
-      updatedBalances[paidBy] += amount;
+    updatedBalances[paidBy] += amount;
 
-      Object.keys(splitRatios).forEach((person) => {
-        const ratio = splitRatios[person];
-        const personAmount = (amount * ratio) / 100;
+    Object.keys(splitRatios).forEach((person) => {
+      const ratio = splitRatios[person];
+      const personAmount = (amount * ratio) / 100;
 
-        if (person !== paidBy && ratio) {
-          updatedBalances[person] -= personAmount;
-        }
-      });
-
-      return updatedBalances;
+      if (person !== paidBy && ratio) {
+        updatedBalances[person] -= personAmount;
+      }
     });
   };
 
@@ -83,6 +85,7 @@ function App() {
       Nistha: 0,
       Ankesh: 0,
     });
+    setTransactions([]);
   };
 
   const filteredTransactions = transactions.filter((transaction) => {
