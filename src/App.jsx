@@ -30,18 +30,48 @@ function App() {
     updateBalances(newTransaction);
   };
 
+  const getSplitRatios = (splitAmong) => {
+    const ratioPerPerson = 100 / splitAmong.length;
+    const splitRatios = {};
+    splitAmong.forEach((person) => {
+      splitRatios[person] = ratioPerPerson;
+    });
+    return splitRatios;
+  };
+
   const updateBalances = (transaction) => {
-    const { paidBy, amount, splitAmong } = transaction;
-    const splitAmount = amount / splitAmong.length;
+    const {
+      paidBy,
+      amount,
+      splitRatios: originalSplitRatios,
+      splitAmong,
+    } = transaction;
+
+    const splitRatios = originalSplitRatios || getSplitRatios(splitAmong);
+
+    if (!transaction || !splitRatios) {
+      console.error("Invalid transaction or splitRatios object", transaction);
+      return;
+    }
+
+    if (typeof splitRatios !== "object" || splitRatios === null) {
+      console.error("splitRatios must be a valid object", splitRatios);
+      return;
+    }
 
     setBalances((prevBalances) => {
       const updatedBalances = { ...prevBalances };
       updatedBalances[paidBy] += amount;
-      splitAmong.forEach((person) => {
-        if (person !== paidBy) {
-          updatedBalances[person] -= splitAmount;
+
+      Object.keys(splitRatios).forEach((person) => {
+        const ratio = splitRatios[person];
+        const personAmount = (amount * ratio) / 100;
+
+        if (person !== paidBy && ratio) {
+          updatedBalances[person] -= personAmount;
         }
       });
+
       return updatedBalances;
     });
   };
@@ -56,7 +86,7 @@ function App() {
   };
 
   const filteredTransactions = transactions.filter((transaction) => {
-    if (!filter) return true; // Show all transactions if no filter is applied
+    if (!filter) return true;
     return (
       transaction.paidBy === filter || transaction.splitAmong.includes(filter)
     );
@@ -66,9 +96,9 @@ function App() {
     <Router>
       <div className="flex flex-col min-h-screen">
         <Navbar />
-        <div className="flex flex-1">
+        <div className="flex flex-1 flex-col md:flex-row">
           <Sidebar />
-          <main className="flex-1 p-8 bg-gray-100">
+          <main className="flex-1 p-4 md:p-8 bg-gray-100">
             <Routes>
               <Route
                 path="/dashboard"
@@ -82,10 +112,13 @@ function App() {
                         />
                       </div>
                       <div className="bg-white shadow-lg p-6 rounded-lg border border-green-200 h-full">
-                        <BalanceSheet balances={balances} />
+                        <BalanceSheet
+                          balances={balances}
+                          transactions={transactions}
+                        />
                         <button
                           onClick={settleUp}
-                          className="w-full bg-green-600 text-white font-medium py-2 rounded-md hover:bg-green-700 transition-colors duration-300 mt-4"
+                          className="w-full mt-4 bg-green-600 text-white font-medium py-2 rounded-md hover:bg-green-700 transition-colors duration-300"
                         >
                           Settle Up
                         </button>
@@ -97,26 +130,11 @@ function App() {
               <Route
                 path="/history"
                 element={
-                  <div className="bg-white shadow-lg p-6 rounded-lg border border-green-200 h-full">
-                    <div className="mb-4">
-                      <label className="block text-sm font-medium text-green-600 mb-2">
-                        Filter by Participant:
-                      </label>
-                      <select
-                        value={filter}
-                        onChange={(e) => setFilter(e.target.value)}
-                        className="w-full p-2 border border-green-300 rounded-md focus:ring-green-500 focus:border-green-500"
-                      >
-                        <option value="">All</option>
-                        {participants.map((person) => (
-                          <option key={person} value={person}>
-                            {person}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <TransactionList transactions={filteredTransactions} />
-                  </div>
+                  <TransactionList
+                    transactions={filteredTransactions}
+                    setFilter={setFilter}
+                    participants={participants}
+                  />
                 }
               />
             </Routes>

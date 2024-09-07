@@ -4,17 +4,24 @@ const AddTransaction = ({ addTransaction, participants }) => {
   const [paidBy, setPaidBy] = useState("");
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
-  const [splitAmong, setSplitAmong] = useState([]);
+  const [splitRatios, setSplitRatios] = useState(
+    (participants || []).reduce((acc, person) => ({ ...acc, [person]: "" }), {})
+  );
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (
-      !paidBy ||
-      !amount ||
-      splitAmong.length === 0 ||
-      parseFloat(amount) <= 0
-    )
-      return;
+    if (!paidBy || !amount || parseFloat(amount) <= 0) return;
+
+    const totalRatio = Object.values(splitRatios).reduce(
+      (sum, ratio) => sum + (parseFloat(ratio) || 0),
+      0
+    );
+
+    if (totalRatio === 0) return;
+
+    const splitAmong = Object.keys(splitRatios).filter(
+      (person) => splitRatios[person] > 0
+    );
 
     const newTransaction = {
       id: Date.now(),
@@ -22,97 +29,104 @@ const AddTransaction = ({ addTransaction, participants }) => {
       amount: parseFloat(amount),
       description,
       splitAmong,
+      splitRatios: splitAmong.reduce(
+        (acc, person) => ({
+          ...acc,
+          [person]: parseFloat(splitRatios[person]),
+        }),
+        {}
+      ),
     };
 
     addTransaction(newTransaction);
     setPaidBy("");
     setAmount("");
     setDescription("");
-    setSplitAmong([]);
+    setSplitRatios(
+      participants.reduce((acc, person) => ({ ...acc, [person]: "" }), {})
+    );
   };
 
-  const handleSplitAmongChange = (e) => {
-    const { value, checked } = e.target;
-    if (checked) {
-      setSplitAmong([...splitAmong, value]);
-    } else {
-      setSplitAmong(splitAmong.filter((person) => person !== value));
-    }
+  const handleSplitRatioChange = (e, person) => {
+    const { value } = e.target;
+    setSplitRatios((prev) => ({ ...prev, [person]: value }));
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-3 p-3 bg-white rounded-md">
-      <h2 className="text-xl font-semibold text-green-800 mb-3">
+    <form onSubmit={handleSubmit} className="space-y-6 p-6 bg-white rounded-lg">
+      <h2 className="text-2xl font-semibold text-gray-800 mb-4">
         Add a Transaction
       </h2>
 
-      <div>
-        <label className="block text-sm font-medium text-green-600">
-          Paid By:
+      <div className="grid gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-600">
+            Paid By:
+          </label>
+          <select
+            value={paidBy}
+            onChange={(e) => setPaidBy(e.target.value)}
+            className="mt-1 p-2 w-full border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
+          >
+            <option value="">Select Person</option>
+            {participants.map((person) => (
+              <option key={person} value={person}>
+                {person}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-600">
+            Amount:
+          </label>
+          <input
+            type="number"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            required
+            className="mt-1 p-2 w-full border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-600">
+            Description:
+          </label>
+          <input
+            type="text"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            required
+            className="mt-1 p-2 w-full border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
+          />
+        </div>
+      </div>
+
+      <div className="mt-4">
+        <label className="block text-sm font-medium text-gray-600">
+          Split Ratios:
         </label>
-        <select
-          value={paidBy}
-          onChange={(e) => setPaidBy(e.target.value)}
-          className="w-full mt-1 p-2 border border-green-300 rounded-md focus:ring-green-500 focus:border-green-500"
-        >
-          <option value="">Select Person</option>
+        <div className="grid grid-cols-2 gap-4 mt-2">
           {participants.map((person) => (
-            <option key={person} value={person}>
-              {person}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-green-600">
-          Amount:
-        </label>
-        <input
-          type="number"
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
-          required
-          className="w-full mt-1 p-2 border border-green-300 rounded-md focus:ring-green-500 focus:border-green-500"
-        />
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-green-600">
-          Description:
-        </label>
-        <input
-          type="text"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          required
-          className="w-full mt-1 p-2 border border-green-300 rounded-md focus:ring-green-500 focus:border-green-500"
-        />
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-green-600">
-          Split Among:
-        </label>
-        <div className="mt-2 flex flex-wrap gap-2">
-          {participants.map((person) => (
-            <label key={person} className="flex items-center space-x-2">
+            <div key={person} className="flex items-center space-x-2">
+              <span className="text-gray-700">{person}</span>
               <input
-                type="checkbox"
-                value={person}
-                checked={splitAmong.includes(person)}
-                onChange={handleSplitAmongChange}
-                className="rounded"
+                type="number"
+                value={splitRatios[person]}
+                onChange={(e) => handleSplitRatioChange(e, person)}
+                className="w-20 p-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
+                placeholder="%"
               />
-              <span>{person}</span>
-            </label>
+            </div>
           ))}
         </div>
       </div>
 
       <button
         type="submit"
-        className="w-full bg-green-600 text-white font-medium py-2 rounded-md hover:bg-green-700 transition-colors duration-300"
+        className="mt-6 w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700 transition-colors duration-300"
       >
         Add Transaction
       </button>
